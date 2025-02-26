@@ -1,5 +1,12 @@
 package Controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import Model.Account;
+import Service.AccountService;
+import Model.Message;
+
+
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -14,9 +21,16 @@ public class SocialMediaController {
      * suite must receive a Javalin object from this method.
      * @return a Javalin app object which defines the behavior of the Javalin controller.
      */
+    AccountService accountService;
+
+    public SocialMediaController(){
+        this.accountService = new AccountService();
+    }
+
     public Javalin startAPI() {
         Javalin app = Javalin.create();
-        app.get("example-endpoint", this::exampleHandler);
+        app.post("/register", this::postRegisterHandler);
+        app.post("/login", this::postLoginHandler);
 
         return app;
     }
@@ -29,5 +43,44 @@ public class SocialMediaController {
         context.json("sample text");
     }
 
+
+    private void postRegisterHandler(Context context) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Account account = mapper.readValue(context.body(), Account.class);
+        if((account.getPassword().length() < 4)|| account.getUsername().isEmpty()){
+            context.status(400);
+            return;
+        }
+        Account registeredAccount = accountService.register(account);
+        if(registeredAccount != null){
+            context.json(mapper.writeValueAsString(registeredAccount));
+        }else {
+            context.status(400);
+        }
+    }
+
+    private void postLoginHandler(Context context) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Account account = mapper.readValue(context.body(), Account.class);
+        Account loginAccount = accountService.login(account);
+        if(loginAccount != null){
+            context.json(mapper.writeValueAsString(loginAccount));
+        }else {
+            context.status(401);
+        }
+    }
+
+    /* 
+    private void postNewMessageHandler(Context context) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(context.body(), Message.class);
+        Message newMessage; //finish implementation
+        if(newMessage != null){
+            context.json(mapper.writeValueAsString(newMessage));
+        }else {
+            context.status(401);
+        }
+    }
+        */
 
 }
