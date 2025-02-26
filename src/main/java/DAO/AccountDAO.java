@@ -7,12 +7,12 @@ import java.util.*;
 
 public class AccountDAO {
 
-    public Account getUserByUserName(String userName){
+    public Account getUserByAccountId(int account_id){
         Connection connection = ConnectionUtil.getConnection();
         try{
-            String sql = "Select * from Account WHERE username = ?;";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, userName);
+            String sql = "Select * from Account WHERE account_id = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, account_id);
             ResultSet rs = preparedStatement.executeQuery();
             while(rs.next()){
                 return new Account(rs.getInt("account_id"), rs.getString("username"), rs.getString("password"));
